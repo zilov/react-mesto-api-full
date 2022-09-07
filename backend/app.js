@@ -9,6 +9,8 @@ const { router } = require('./routes/index');
 const { login, createUser } = require('./controllers/users');
 const { checkToken } = require('./middlewares/auth');
 const { cors } = require('./middlewares/cors');
+const { requestLogger, errorLogger } = require('./middlewares/logger'); 
+require('dotenv').config();
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
@@ -21,7 +23,18 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cookieParser());
 
+app.use(requestLogger); 
 app.use(cors);
+
+app.get('/test', (req, res) => {
+  res.send({message: 'Connection successfull!'})
+});
+
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт');
+  }, 0);
+});
 
 app.post('/signin', celebrate({
   body: Joi.object().keys({
@@ -44,6 +57,8 @@ app.use(checkToken);
 
 app.use(router);
 
+app.use(errorLogger); 
+
 // eslint ругается на next который н используется в миддлвере, игнорирую
 // eslint-disable-next-line
 app.use((err, req, res, next) => {
@@ -56,8 +71,10 @@ app.use((err, req, res, next) => {
       message += `${value.message}; `;
     }
     return res.status(400).send({ message });
+  } if (err.statusCode) {
+    return res.status(err.statusCode).send({ message: err.message });
   }
-  return res.status(err.statusCode).send({ message: err.message });
+  return res.status(404).send(err);
 });
 
 app.listen(3000, () => {

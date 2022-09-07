@@ -1,26 +1,25 @@
 const jwt = require('jsonwebtoken');
 const Users = require('../models/user');
+const { NODE_ENV, JWT_SECRET }  = process.env;
 
 const {
   UnauthorizedError,
   NotFoundError,
 } = require('../controllers/errors');
 
-const checkToken = (req, res, next) => jwt.verify(req.cookies.jwt, 'secretsecretsecret', (err, decoded) => {
-  if (err) {
+const checkToken = async (req, res, next) => {
+  const decoded = await jwt.verify(req.cookies.jwt, 
+    NODE_ENV === 'production' ? JWT_SECRET : 'secretsecretsecret');
+  if (!decoded) {
     return next(new UnauthorizedError('Cannot find JWT! Please sign in!'));
+  }  
+  const user = await Users.findById(decoded) 
+  if (!user) {
+    return next(new NotFoundError('Please sign in! Token is expired, cannot find user!'));
   }
-  return Users.findById(decoded, (userErr, user) => {
-    if (userErr) {
-      return next(new UnauthorizedError('Error in decoding token'));
-    }
-    if (!user) {
-      return next(new NotFoundError('Please sign in! Token is expired, cannot find user!'));
-    }
-    req.user = decoded;
-    return next();
-  });
-});
+  req.user = decoded;
+  return next();
+}
 
 module.exports = {
   checkToken,
