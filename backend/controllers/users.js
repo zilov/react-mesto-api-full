@@ -24,10 +24,12 @@ const login = (req, res, next) => Users.findOne({ email: req.body.email }).selec
         if (!matched) {
           throw new UnauthorizedError('Wrong email or password');
         }
-        const token = jwt.sign({ _id: user._id },
-           NODE_ENV === 'production' ? JWT_SECRET : 'secretsecretsecret',
-           { expiresIn: '7d' });
-        res.cookie('jwt', token, { maxAge: 3600000 * 24 * 7, httpOnly: true });
+        const token = jwt.sign(
+          { _id: user._id },
+          NODE_ENV === 'production' ? JWT_SECRET : 'secretsecretsecret',
+          { expiresIn: '7d' }
+        );
+        res.cookie('jwt', token, { maxAge: 3600000 * 24 * 7 });
         req.user = { _id: user._id };
         return res.send({ token });
       })
