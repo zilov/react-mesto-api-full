@@ -2,8 +2,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const Users = require('../models/user');
-const { NODE_ENV, JWT_SECRET }  = process.env;
+require('dotenv').config();
 
+const { NODE_ENV, JWT_SECRET } = process.env;
 
 const {
   BadRequestError,
@@ -27,7 +28,7 @@ const login = (req, res, next) => Users.findOne({ email: req.body.email }).selec
         const token = jwt.sign(
           { _id: user._id },
           NODE_ENV === 'production' ? JWT_SECRET : 'secretsecretsecret',
-          { expiresIn: '7d' }
+          { expiresIn: '7d' },
         );
         res.cookie('jwt', token, { maxAge: 3600000 * 24 * 7 });
         req.user = { _id: user._id };

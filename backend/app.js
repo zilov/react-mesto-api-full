@@ -9,8 +9,7 @@ const { router } = require('./routes/index');
 const { login, createUser } = require('./controllers/users');
 const { checkToken } = require('./middlewares/auth');
 const { cors } = require('./middlewares/cors');
-const { requestLogger, errorLogger } = require('./middlewares/logger'); 
-require('dotenv').config();
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
@@ -23,11 +22,11 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-app.use(requestLogger); 
+app.use(requestLogger);
 app.use(cors);
 
 app.get('/test', (req, res) => {
-  res.send({message: 'Connection successfull!'})
+  res.send({ message: 'Connection successfull!' });
 });
 
 app.get('/crash-test', () => {
@@ -57,7 +56,7 @@ app.use(checkToken);
 
 app.use(router);
 
-app.use(errorLogger); 
+app.use(errorLogger);
 
 // eslint ругается на next который н используется в миддлвере, игнорирую
 // eslint-disable-next-line
